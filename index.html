@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudio Comparativo por Administración: Sector Educativo Colombia</title>
+    
+    <!-- Librerías de Visualización Estables -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Plugin de Clustering para evitar solapamiento de marcadores -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0f766e;
+            --accent: #ef4444;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--background); color: var(--text); padding: 24px; line-height: 1.5; }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;
+        }
+        h1 { font-size: 22px; margin-bottom: 4px; }
+        header p { font-size: 13px; opacity: 0.9; }
+
+        .section-title {
+            font-size: 16px; color: var(--primary); margin: 24px 0 12px 0;
+            border-left: 4px solid var(--primary-light); padding-left: 8px;
+            font-weight: bold;
+        }
+
+        /* CUADRÍCULA SIMÉTRICA 2x2 PARA LOS 4 GRÁFICOS MACRO */
+        .grid-comparativo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 24px; margin-bottom: 24px;
+        }
+        
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card h2 {
+            font-size: 15px; color: var(--primary); margin-bottom: 16px;
+            border-left: 4px solid var(--primary-light); padding-left: 8px;
+        }
+
+        .chart-box { position: relative; height: 320px; width: 100%; }
+        
+        /* Contenedores del Mapa Real */
+        .map-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+        }
+        #map { height: 500px; border-radius: 8px; border: 1px solid var(--border); }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: #f1f5f9; color: var(--primary); }
+        
+        .badge {
+            padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; display: inline-block;
+        }
+        .bg-new { background-color: #10b981; }
+        .bg-remodel { background-color: #3b82f6; }
+        
+        .gov-tag {
+            font-weight: bold; color: #1e293b; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px;
+        }
+
+        /* Sección de Metodología de Datos */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .source-subcard {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid var(--secondary);
+        }
+        .source-subcard h4 {
+            font-size: 13px;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .source-subcard ul {
+            list-style-type: none;
+            font-size: 12px;
+            color: #334155;
+        }
+        .source-subcard li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .source-subcard a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .source-subcard a:hover {
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: white; padding: 24px; border-radius: 12px;
+            width: 90%; max-width: 480px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            position: relative; animation: fadeIn 0.2s ease-out;
+        }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 22px; cursor: pointer; color: #64748b; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        @media(max-width: 1100px) { .grid-comparativo { grid-template-columns: 1fr; } }
+        @media(max-width: 900px) { .map-layout { grid-template-columns: 1fr; } .sources-grid { grid-template-columns: 1fr; } }
+        footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Análisis Estructural Comparativo por Administración Presidencial</h1>
+        <p>Evaluación indexada por periodos de gobierno: Relación Inversión vs. Cobertura Estudiantil y Planta Operativa (2006-2026)</p>
+    </header>
+
+    <!-- BLOQUE COMPARATIVO MACRO: Ahora unificado en estructura 2x2 para equilibrio óptico -->
+    <div class="grid-comparativo">
+        <div class="card">
+            <h2>Presupuesto Promedio vs Matrícula por Gobierno</h2>
+            <div class="chart-box">
+                <canvas id="mixChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Personal Técnico SGP vs Tercerización Estimada</h2>
+            <div class="chart-box">
+                <canvas id="staffCompareChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Uso del Presupuesto por Administración (Valores Absolutos)</h2>
+            <div class="chart-box">
+                <canvas id="govInvestmentChart"></canvas>
+            </div>
+        </div>
+
+        <!-- NUEVA CARD: COMPARATIVO PROPORCIONAL PORCENTUAL AL 100% -->
+        <div class="card">
+            <h2>Distribución Porcentual del Presupuesto (Comparativa 100%)</h2>
+            <div class="chart-box">
+                <canvas id="percentageDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">2. Auditoría Territorial Completa de Obras (Consolidado Nacional Integrado)</h2>
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="map-layout">
+            <div id="map"></div>
+            
+            <div>
+                <h3 id="panelDept" style="color:var(--primary); font-size:16px; margin-bottom:5px;">Conectando repositorio...</h3>
+                <p id="panelLoc" style="font-size:12px; color:#64748b; margin-bottom:15px;">Descargando base de datos asíncrona</p>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><strong>Tipo de Intervención:</strong></td>
+                            <td><span id="panelType" class="badge bg-new">-</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Inversión Asignada:</strong></td>
+                            <td id="panelValue" style="font-weight: bold; color: var(--primary);">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Capacidad Real (Cupos):</strong></td>
+                            <td id="panelCapacity">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gobierno de Inicio (Contrato):</strong></td>
+                            <td><span id="panelGovInicio" class="gov-tag">-</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gobierno de Entrega (Cinta):</strong></td>
+                            <td><span id="panelGovFin" class="gov-tag">-</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Análisis Crítico de Obra:</strong></td>
+                            <td id="panelDetails" style="font-size: 11px; color: #475569; line-height: 1.4;">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">3. Trazabilidad de Fuentes de Información y Metodología</h2>
+    <div class="card" style="margin-bottom: 24px;">
+        <p style="font-size:13px; color:#475569; margin-bottom:15px; line-height: 1.6;">
+            Para salvaguardar el rigor académico de este tablero comparativo, a continuación se detallan las fuentes de información del Estado que alimentan la interfaz y se expone la metodología empleada para resolver los vacíos de actualización de los portales gubernamentales.
+        </p>
+        
+        <div class="sources-grid">
+            <div class="source-subcard">
+                <h4>🗺️ Datos de Infraestructura Educativa (Foco: Mapa)</h4>
+                <ul>
+                    <li>
+                        <strong>Dataset de Cobertura Histórica (MEN):</strong> Proviene del portal de Datos Abiertos de Colombia: <br>
+                        <a href="https://www.datos.gov.co/Educaci-n/MEN_INDICADORES_INFRAESTRUCTURA/3ncw-3qwq/about_data" target="_blank">MEN_INDICADORES_INFRAESTRUCTURA (ID: 3ncw-3qwq)</a>. <br>
+                        <span style="font-size:11px; color:#64748b; display:block; margin-top:4px;">
+                            ⚠️ <strong>Anotación Crítica de Auditoría (Ficha image_2749a5.png):</strong> Aunque la plataforma reporta actualización técnica en mayo de 2026, la matriz física de registros de este dataset no se modifica desde diciembre de 2021, congelando el reporte estático entre las vigencias de 2018 y 2021 (Gobierno Duque).
+                        </span>
+                    </li>
+                    <li style="margin-top:10px; border-top: 1px solid #cbd5e1; padding-top:10px;">
+                        <strong>Bases de Datos en Vivo (FFIE 2022-2026):</strong> Obtenidas mediante web-scraping asíncrono dinámico del portal del Fondo de Financiamiento de la Infraestructura Educativa:
+                        <br>• <a href="https://ffie.com.co/mejoramientosrurales/" target="_blank">Mejoramientos Rurales en Vivo</a>
+                        <br>• <a href="https://ffie.com.co/proyectos/metas/" target="_blank">Metas Nacionales de Infraestructura</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="source-subcard" style="border-left-color: var(--primary-light);">
+                <h4>📈 Origen de las Macrométricas Financieras (Foco: Gráficos)</h4>
+                <ul>
+                    <li>
+                        <strong>Techo Presupuestal Histórico (2006 - 2026):</strong> Extraído directamente de los Decretos de Liquidación Anuales del <strong>Presupuesto General de la Nación (PGN)</strong> expedidos de forma consecutiva por el <strong>Ministerio de Hacienda y Crédito Público</strong> y consolidados bajo las leyes de presupuesto decretadas al cierre de cada periodo de gobierno.
+                    </li>
+                    <li style="margin-top:10px; border-top: 1px solid #cbd5e1; padding-top:10px;">
+                        <strong>Matrícula Agregada por Periodo:</strong> Consolidado histórico de cobertura formal de instituciones educativas públicas derivado de las series de matrícula registradas en el <strong>SIMAT (Sistema de Matrícula Estudiantil)</strong> cruzado con los boletines de la Encuesta de Educación Formal (EDUC) del <strong>DANE</strong>.
+                    </li>
+                    <li style="margin-top:10px; border-top: 1px solid #cbd5e1; padding-top:10px;">
+                        <strong>Planta de Docentes y Nómina SGP:</strong> Datos históricos del rubro de funcionamiento escolar del <strong>Sistema General de Participaciones (SGP)</strong> administrado por el <strong>Departamento Nacional de Planeación (DNP)</strong> y reportes de pasivo prestacional del magisterio del <strong>FOMAG</strong>.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="cerrarModal()">&times;</span>
+            <h3 id="modalTitle" style="color:var(--primary); font-size:15px; margin-bottom:15px; text-align:center;">Distribución del Gasto</h3>
+            <div style="position:relative; height:280px; width:100%;">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <strong>Estrategia de Carga Diferida (Lazy):</strong> Petición HTTP asíncrona apuntando a la base de datos distribuida del mapa territorial remota, resolviendo solapamientos coordenados municipales e inyectando indexación política para el contraste analítico.
+    </footer>
+
+    <script>
+        const administraciones = ['Uribe (2006-10)', 'Santos (2010-18)', 'Duque (2018-22)', 'Petro (2022-26)'];
+        const DATA_URL = "https://raw.githubusercontent.com/robiwimarbu/auditoria-educacion/refs/heads/main/proyectos.json";
+
+        const map = L.map('map').setView([4.5709, -74.2973], 5.5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(map);
+
+        // Grupo de clusters para evitar colisión de puntos del mismo municipio
+        const markersClusterGroup = L.markerClusterGroup({
+            spiderfyOnMaxZoom: true, 
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+
+        function actualizarPanel(p) {
+            document.getElementById('panelDept').innerText = p.name;
+            document.getElementById('panelLoc').innerText = p.loc;
+            const typeEl = document.getElementById('panelType');
+            typeEl.innerText = p.type;
+            typeEl.className = p.type === "NUEVA" || p.type === "NUEVA / AMPLIACIÓN" ? "badge bg-new" : "badge bg-remodel";
+            document.getElementById('panelValue').innerText = p.value;
+            document.getElementById('panelCapacity').innerText = p.capacity;
+            document.getElementById('panelGovInicio').innerText = p.govInicio;
+            document.getElementById('panelGovFin').innerText = p.govFin;
+            document.getElementById('panelDetails').innerText = p.details;
+        }
+
+        async function consumirRepositorioRemoto() {
+            try {
+                const response = await fetch(DATA_URL);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const proyectos = await response.json();
+                
+                if (proyectos.length > 0) {
+                    actualizarPanel(proyectos[0]);
+                }
+
+                proyectos.forEach(p => {
+                    // Jittering sutil para evitar solape milimétrico en centroides municipales
+                    const latDispersa = p.lat + (Math.random() - 0.5) * 0.15;
+                    const lngDispersa = p.lng + (Math.random() - 0.5) * 0.15;
+
+                    const marker = L.marker([latDispersa, lngDispersa]);
+                    marker.on('click', () => actualizarPanel(p));
+                    markersClusterGroup.addLayer(marker);
+                });
+
+                map.addLayer(markersClusterGroup);
+
+            } catch (error) {
+                console.error("❌ Fallo en la carga remota:", error);
+                document.getElementById('panelDept').innerText = "Error de conexión";
+            }
+        }
+
+        // --- CONFIGURACIÓN DE GRÁFICOS (CHART.JS) ---
+        new Chart(document.getElementById('mixChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: administraciones,
+                datasets: [
+                    { label: 'Matrícula Promedio (Millones)', data: [10.2, 9.9, 9.6, 9.3], backgroundColor: 'rgba(15, 118, 110, 0.75)', yAxisID: 'yAlumnos', order: 2 },
+                    { label: 'Inversión Techo (Billones)', data: [16.2, 38.0, 49.3, 75.1], borderColor: '#ef4444', borderWidth: 3, type: 'line', fill: false, yAxisID: 'yPresupuesto', order: 1 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { yAlumnos: { type: 'linear', position: 'left', min: 8, max: 12 }, yPresupuesto: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } } } }
+        });
+
+        new Chart(document.getElementById('staffCompareChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: administraciones,
+                datasets: [
+                    { label: 'Docentes Planta (SGP)', data: [315000, 320000, 328000, 330500], backgroundColor: '#1e3a8a' },
+                    { label: 'Administrativos Oficiales', data: [53000, 50500, 46000, 44700], backgroundColor: '#cbd5e1' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        const pieDataGobernantes = {
+            'Uribe (2006-10)': { labels: ['Nómina Docente', 'Pensiones Magisterio', 'Inversión e Infraestructura'], data: [65, 22, 13] },
+            'Santos (2010-18)': { labels: ['Nómina Docente', 'Pensiones Magisterio', 'Inversión e Infraestructura'], data: [62, 20, 18] },
+            'Duque (2018-22)': { labels: ['Nómina Docente', 'Pensiones Magisterio', 'Inversión e Infraestructura'], data: [64, 21, 15] },
+            'Petro (2022-26)': { labels: ['Nómina Docente', 'Pensiones Magisterio', 'Inversión e Infraestructura'], data: [67, 23, 10] }
+        };
+
+        let myPieChart = null;
+        
+        // Gráfico 3: Valores Absolutos acumulados por gobierno
+        const govChart = new Chart(document.getElementById('govInvestmentChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: administraciones,
+                datasets: [
+                    { label: 'Nómina Docente ($)', data: [8.9, 18.3, 29.3, 48.7], backgroundColor: '#1e3a8a' },
+                    { label: 'Pensiones Magisterio ($)', data: [3.0, 5.9, 9.6, 16.7], backgroundColor: '#f59e0b' },
+                    { label: 'Inversión/Infraestructura ($)', data: [1.8, 5.4, 6.9, 7.4], backgroundColor: '#10b981' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Billones COP Acumulados' } } },
+                onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default'; },
+                onClick: (e, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        abrirModalGasto(govChart.data.labels[index]);
+                    }
+                }
+            }
+        });
+
+        // NUEVO GRÁFICO 4: Gráfico Apilado al 100% para comparación proporcional directa
+        new Chart(document.getElementById('percentageDistributionChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: administraciones,
+                datasets: [
+                    { label: 'Nómina Docente (%)', data: [65, 62, 64, 67], backgroundColor: '#1e3a8a' },
+                    { label: 'Pensiones Magisterio (%)', data: [22, 20, 21, 23], backgroundColor: '#f59e0b' },
+                    { label: 'Inversión e Infraestructura (%)', data: [13, 18, 15, 10], backgroundColor: '#10b981' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true },
+                    y: {
+                        stacked: true,
+                        max: 100,
+                        title: { display: true, text: 'Porcentaje Distribución (%)' }
+                    }
+                }
+            }
+        });
+
+        function abrirModalGasto(gobierno) {
+            document.getElementById('modalTitle').innerText = `Uso Real del Gasto: ${gobierno}`;
+            document.getElementById('chartModal').style.display = 'flex';
+            const configPie = pieDataGobernantes[gobierno];
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            if (myPieChart) { myPieChart.destroy(); }
+            const labelsConPorcentaje = configPie.labels.map((label, i) => `${label} (${configPie.data[i]}%)`);
+            myPieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: { labels: labelsConPorcentaje, datasets: [{ data: configPie.data, backgroundColor: ['#1e3a8a', '#f59e0b', '#10b981'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } }
+            });
+        }
+
+        function cerrarModal() { document.getElementById('chartModal').style.display = 'none'; }
+        window.onclick = (event) => { if (event.target == document.getElementById('chartModal')) { cerrarModal(); } }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            consumirRepositorioRemoto();
+        });
+    </script>
+</body>
+</html>
