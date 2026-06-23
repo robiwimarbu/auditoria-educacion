@@ -43,6 +43,66 @@
             background: #cbd5e1;
             border-radius: 4px;
         }
+        /* Estilos recuperados para las tarjetas explicativas */
+        .fuentes-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        .fuentes-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .fuentes-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        .fuente-item {
+            background-color: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+        /* Estilos de la ventana modal que también faltaban */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.25rem;
+            color: #64748b;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            color: #0f172a;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 p-4 md:p-8 min-h-screen">
@@ -219,30 +279,39 @@
         </p>
         
         <div class="fuentes-grid">
-            <div class="fuente-item">
-                <h4 class="font-bold text-blue-900 mb-1">1. Mapa de Infraestructura Territorial</h4>
-                <p class="text-slate-600 leading-relaxed">Alimentado de forma híbrida deduplicada a partir de:</p>
-                <ul class="list-disc pl-5 mt-1 text-slate-600 space-y-1">
-                    <li><a href="https://www.datos.gov.co/Educaci-n/MEN_INDICADORES_INFRAESTRUCTURA/3ncw-3qwq/about_data" target="_blank" class="text-blue-500 hover:underline">MEN Indicadores de Infraestructura</a> (Ficha nacional con congelamiento estático de reportes a diciembre de 2021).</li>
-                    <li>Bitácora de <a href="https://ffie.com.co/mejoramientosrurales/" target="_blank" class="text-blue-500 hover:underline">Mejoramientos Rurales FFIE</a> y <a href="https://ffie.com.co/proyectos/metas/" target="_blank" class="text-blue-500 hover:underline">Metas Nacionales</a> (Extracción en vivo con cierres actualizados a 2026).</li>
+            <div class="fuente-item hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-200">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                    <h4 class="font-bold text-blue-900">1. Mapa Territorial</h4>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed mb-2">Alimentado de forma híbrida deduplicada a partir de:</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1.5">
+                    <li><a href="https://www.datos.gov.co/Educaci-n/MEN_INDICADORES_INFRAESTRUCTURA/3ncw-3qwq/about_data" target="_blank" class="text-blue-500 hover:text-blue-700 font-medium">Datos Abiertos (MEN)</a> (Corte estático a diciembre de 2021).</li>
+                    <li><a href="https://ffie.com.co/mejoramientosrurales/" target="_blank" class="text-blue-500 hover:text-blue-700 font-medium">Bitácoras en vivo FFIE</a> (Extracción paralela actualizada a 2026).</li>
                 </ul>
             </div>
             
-            <div class="fuente-item">
-                <h4 class="font-bold text-blue-900 mb-1">2. Gráficos de Gasto Macro y Matrícula</h4>
-                <p class="text-slate-600 leading-relaxed">Las series históricas agregadas de los gráficos 1, 2 y 3 provienen de:</p>
-                <ul class="list-disc pl-5 mt-1 text-slate-600 space-y-1">
-                    <li><strong>Presupuesto:</strong> Decretos de Liquidación del Presupuesto General de la Nación (PGN), Ministerio de Hacienda.</li>
-                    <li><strong>Matrícula:</strong> Registros consolidados de cobertura SIMAT e investigaciones estadísticas del DANE (Encuesta EDUC).</li>
+            <div class="fuente-item hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-200">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h4 class="font-bold text-blue-900">2. Gasto y Matrícula</h4>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed mb-2">Las series históricas agregadas provienen de:</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1.5">
+                    <li><strong>Presupuesto:</strong> Decretos de Liquidación del Presupuesto General de la Nación (Ministerio de Hacienda).</li>
+                    <li><strong>Matrícula:</strong> Registros de cobertura SIMAT e investigaciones estadísticas del DANE (Encuesta EDUC).</li>
                 </ul>
             </div>
 
-            <div class="fuente-item">
-                <h4 class="font-bold text-blue-900 mb-1">3. Nómina de Personal y SGP</h4>
-                <p class="text-slate-600 leading-relaxed">El estancamiento administrativo y sostenimiento del magisterio oficial se indexa cruzando:</p>
-                <ul class="list-disc pl-5 mt-1 text-slate-600 space-y-1">
-                    <li>Distribuciones anuales del Sistema General de Participaciones (SGP) expedidas por el Departamento Nacional de Planeación (DNP).</li>
-                    <li>Balances financieros de aportes del Fondo Nacional de Prestaciones Sociales del Magisterio (FOMAG).</li>
+            <div class="fuente-item hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-200">
+                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <h4 class="font-bold text-blue-900">3. Nómina de Personal</h4>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed mb-2">El sostenimiento del magisterio oficial se indexa cruzando:</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1.5">
+                    <li>Distribuciones anuales del Sistema General de Participaciones (DNP).</li>
+                    <li>Balances financieros de aportes al Fondo Nacional de Prestaciones Sociales del Magisterio (FOMAG).</li>
                 </ul>
             </div>
         </div>
@@ -256,7 +325,17 @@
         let ffieChartInstance = null; // Instancia global del gráfico físico dinámico
 
         // --- 1. CONFIGURACIÓN DEL MAPA BASE (LEAFLET.JS) ---
-        const map = L.map('map').setView([4.5709, -74.2973], 5.5);
+        // Coordenadas extremas de Colombia (Latitud/Longitud)
+        const boundsColombia = L.latLngBounds(
+            L.latLng(-4.5, -82.0), // Esquina Suroeste (Amazonas/Pacífico)
+            L.latLng(13.5, -66.0)  // Esquina Noreste (Guajira/Orinoquía)
+        );
+
+        const map = L.map('map', {
+            maxBounds: boundsColombia,
+            maxBoundsViscosity: 1.0, // Rebote rígido al intentar arrastrar fuera
+            minZoom: 5 // Evita alejar demasiado la cámara
+        }).setView([4.5709, -74.2973], 5.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
             attribution: '&copy; CARTO'
         }).addTo(map);
