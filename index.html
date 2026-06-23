@@ -5,295 +5,289 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estudio Comparativo por Administración: Sector Educativo Colombia</title>
     
-    <!-- Librerías de Visualización Estables -->
+    <!-- Tailwind CSS para diseño moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js para visualización de métricas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Leaflet.js para mapeo geográfico -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Plugin de Clustering para evitar solapamiento de marcadores -->
+    <!-- Plugin Leaflet MarkerCluster para agrupar marcadores de forma fluida -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
     <style>
-        :root {
-            --primary: #1e3a8a;
-            --primary-light: #3b82f6;
-            --secondary: #0f766e;
-            --accent: #ef4444;
-            --background: #f8fafc;
-            --text: #1e293b;
-            --card-bg: #ffffff;
-            --border: #e2e8f0;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--background); color: var(--text); padding: 24px; line-height: 1.5; }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), #1d4ed8);
-            color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;
+        /* Garantizar visibilidad correcta del mapa Leaflet */
+        #map {
+            height: 520px;
+            width: 100%;
+            z-index: 10;
         }
-        h1 { font-size: 22px; margin-bottom: 4px; }
-        header p { font-size: 13px; opacity: 0.9; }
-
-        .section-title {
-            font-size: 16px; color: var(--primary); margin: 24px 0 12px 0;
-            border-left: 4px solid var(--primary-light); padding-left: 8px;
-            font-weight: bold;
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
         }
-
-        /* CUADRÍCULA SIMÉTRICA 2x2 PARA LOS 4 GRÁFICOS MACRO */
-        .grid-comparativo {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 24px; margin-bottom: 24px;
-        }
-        
-        .card {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .card h2 {
-            font-size: 15px; color: var(--primary); margin-bottom: 16px;
-            border-left: 4px solid var(--primary-light); padding-left: 8px;
-        }
-
-        .chart-box { position: relative; height: 320px; width: 100%; }
-        
-        /* Contenedores del Mapa Real */
-        .map-layout {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 20px;
-        }
-        #map { height: 500px; border-radius: 8px; border: 1px solid var(--border); }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background-color: #f1f5f9; color: var(--primary); }
-        
-        .badge {
-            padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; display: inline-block;
-        }
-        .bg-new { background-color: #10b981; }
-        .bg-remodel { background-color: #3b82f6; }
-        
-        .gov-tag {
-            font-weight: bold; color: #1e293b; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px;
-        }
-
-        /* Sección de Metodología de Datos */
-        .sources-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 15px;
-        }
-        .source-subcard {
+        .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f5f9;
-            border-radius: 8px;
-            padding: 16px;
-            border-left: 4px solid var(--secondary);
         }
-        .source-subcard h4 {
-            font-size: 13px;
-            color: var(--primary);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
         }
-        .source-subcard ul {
-            list-style-type: none;
-            font-size: 12px;
-            color: #334155;
-        }
-        .source-subcard li {
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .source-subcard a {
-            color: var(--primary-light);
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .source-subcard a:hover {
-            text-decoration: underline;
-        }
-
-        .modal {
-            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
-            align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background-color: white; padding: 24px; border-radius: 12px;
-            width: 90%; max-width: 480px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            position: relative; animation: fadeIn 0.2s ease-out;
-        }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 22px; cursor: pointer; color: #64748b; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-
-        @media(max-width: 1100px) { .grid-comparativo { grid-template-columns: 1fr; } }
-        @media(max-width: 900px) { .map-layout { grid-template-columns: 1fr; } .sources-grid { grid-template-columns: 1fr; } }
-        footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: #64748b; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 p-4 md:p-8 min-h-screen">
 
-    <header>
-        <h1>Análisis Estructural Comparativo por Administración Presidencial</h1>
-        <p>Evaluación indexada por periodos de gobierno: Relación Inversión vs. Cobertura Estudiantil y Planta Operativa (2006-2026)</p>
+    <header class="bg-gradient-to-r from-blue-900 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-lg mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2">Análisis Estructural Comparativo por Administración Presidencial</h1>
+        <p class="text-sm md:text-base text-blue-100 opacity-90 font-light">
+            Evaluación cruzada de la infraestructura física del FFIE frente a variables de financiamiento macroeconómico y cobertura estudiantil (2006-2026)
+        </p>
     </header>
 
-    <!-- BLOQUE COMPARATIVO MACRO: Ahora unificado en estructura 2x2 para equilibrio óptico -->
-    <div class="grid-comparativo">
-        <div class="card">
-            <h2>Presupuesto Promedio vs Matrícula por Gobierno</h2>
-            <div class="chart-box">
+    <!-- SECCIÓN 1: Gráficos de Control de Política Macroeconómica -->
+    <h2 class="text-lg font-semibold text-blue-900 mb-4 border-l-4 border-blue-500 pl-3">1. Diagnóstico e Indicadores Macroeconómicos Generales</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Card 1: Presupuesto vs Matrícula -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Presupuesto Promedio vs Matrícula por Gobierno</h3>
+            <div class="relative h-72">
                 <canvas id="mixChart"></canvas>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Personal Técnico SGP vs Tercerización Estimada</h2>
-            <div class="chart-box">
+        <!-- Card 2: Planta SGP vs Administrativos -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Personal Técnico SGP vs Tercerización Estimada</h3>
+            <div class="relative h-72">
                 <canvas id="staffCompareChart"></canvas>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Uso del Presupuesto por Administración (Valores Absolutos)</h2>
-            <div class="chart-box">
+        <!-- Card 3: Uso del Presupuesto (Absoluto) -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Uso del Presupuesto por Administración</h3>
+                <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">Clic para Pastel</span>
+            </div>
+            <div class="relative h-72">
                 <canvas id="govInvestmentChart"></canvas>
             </div>
         </div>
 
-        <!-- NUEVA CARD: COMPARATIVO PROPORCIONAL PORCENTUAL AL 100% -->
-        <div class="card">
-            <h2>Distribución Porcentual del Presupuesto (Comparativa 100%)</h2>
-            <div class="chart-box">
-                <canvas id="percentageDistributionChart"></canvas>
+        <!-- Card 4: Distribución Porcentual del Gasto -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Distribución Porcentual del Gasto por Gobierno</h3>
+            <div class="relative h-72">
+                <canvas id="govPercentageChart"></canvas>
             </div>
         </div>
     </div>
 
-    <h2 class="section-title">2. Auditoría Territorial Completa de Obras (Consolidado Nacional Integrado)</h2>
-    <div class="card" style="margin-bottom: 24px;">
-        <div class="map-layout">
-            <div id="map"></div>
-            
-            <div>
-                <h3 id="panelDept" style="color:var(--primary); font-size:16px; margin-bottom:5px;">Conectando repositorio...</h3>
-                <p id="panelLoc" style="font-size:12px; color:#64748b; margin-bottom:15px;">Descargando base de datos asíncrona</p>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td><strong>Tipo de Intervención:</strong></td>
-                            <td><span id="panelType" class="badge bg-new">-</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Inversión Asignada:</strong></td>
-                            <td id="panelValue" style="font-weight: bold; color: var(--primary);">-</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Capacidad Real (Cupos):</strong></td>
-                            <td id="panelCapacity">-</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Gobierno de Inicio (Contrato):</strong></td>
-                            <td><span id="panelGovInicio" class="gov-tag">-</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Gobierno de Entrega (Cinta):</strong></td>
-                            <td><span id="panelGovFin" class="gov-tag">-</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Análisis Crítico de Obra:</strong></td>
-                            <td id="panelDetails" style="font-size: 11px; color: #475569; line-height: 1.4;">-</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <h2 class="section-title">3. Trazabilidad de Fuentes de Información y Metodología</h2>
-    <div class="card" style="margin-bottom: 24px;">
-        <p style="font-size:13px; color:#475569; margin-bottom:15px; line-height: 1.6;">
-            Para salvaguardar el rigor académico de este tablero comparativo, a continuación se detallan las fuentes de información del Estado que alimentan la interfaz y se expone la metodología empleada para resolver los vacíos de actualización de los portales gubernamentales.
-        </p>
+    <!-- SECCIÓN 2: Panel de Auditoría Territorial y Filtros Interactivos -->
+    <h2 class="text-lg font-semibold text-blue-900 mb-4 border-l-4 border-blue-500 pl-3">2. Auditoría Territorial Interactiva (Consolidado de Obras)</h2>
+    
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
         
-        <div class="sources-grid">
-            <div class="source-subcard">
-                <h4>🗺️ Datos de Infraestructura Educativa (Foco: Mapa)</h4>
-                <ul>
-                    <li>
-                        <strong>Dataset de Cobertura Histórica (MEN):</strong> Proviene del portal de Datos Abiertos de Colombia: <br>
-                        <a href="https://www.datos.gov.co/Educaci-n/MEN_INDICADORES_INFRAESTRUCTURA/3ncw-3qwq/about_data" target="_blank">MEN_INDICADORES_INFRAESTRUCTURA (ID: 3ncw-3qwq)</a>. <br>
-                        <span style="font-size:11px; color:#64748b; display:block; margin-top:4px;">
-                            ⚠️ <strong>Anotación Crítica de Auditoría (Ficha image_2749a5.png):</strong> Aunque la plataforma reporta actualización técnica en mayo de 2026, la matriz física de registros de este dataset no se modifica desde diciembre de 2021, congelando el reporte estático entre las vigencias de 2018 y 2021 (Gobierno Duque).
-                        </span>
-                    </li>
-                    <li style="margin-top:10px; border-top: 1px solid #cbd5e1; padding-top:10px;">
-                        <strong>Bases de Datos en Vivo (FFIE 2022-2026):</strong> Obtenidas mediante web-scraping asíncrono dinámico del portal del Fondo de Financiamiento de la Infraestructura Educativa:
-                        <br>• <a href="https://ffie.com.co/mejoramientosrurales/" target="_blank">Mejoramientos Rurales en Vivo</a>
-                        <br>• <a href="https://ffie.com.co/proyectos/metas/" target="_blank">Metas Nacionales de Infraestructura</a>
-                    </li>
-                </ul>
+        <!-- BARRA DE FILTROS CRUZADOS REACTIVOS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-slate-100 p-4 rounded-xl border border-slate-200">
+            <div class="flex flex-col gap-1.5">
+                <label for="filterPresident" class="text-xs font-bold text-blue-900 uppercase tracking-wider">Administración de Control (Mapa)</label>
+                <select id="filterPresident" onchange="aplicarFiltros()" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 outline-none cursor-pointer">
+                    <option value="Todos">Todos los Periodos</option>
+                    <option value="Santos">Santos (2010-18)</option>
+                    <option value="Duque">Duque (2018-22)</option>
+                    <option value="Petro">Petro (2022-26)</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="filterType" class="text-xs font-bold text-blue-900 uppercase tracking-wider">Tipo de Intervención</label>
+                <select id="filterType" onchange="aplicarFiltros()" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 outline-none cursor-pointer">
+                    <option value="Todos">Todos los Tipos</option>
+                    <option value="NUEVA">Nuevas / Ampliación</option>
+                    <option value="REMODELACION">Remodelación / Mejoramiento</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="filterCycle" class="text-xs font-bold text-blue-900 uppercase tracking-wider">Relación Ciclo de Obra vs Periodo Político</label>
+                <select id="filterCycle" onchange="aplicarFiltros()" disabled class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 outline-none cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed">
+                    <option value="Todos">Todos (Iniciado o Entregado en el periodo)</option>
+                    <option value="Hecho">Hecho totalmente en el periodo (Inició y Terminó)</option>
+                    <option value="Iniciado">Solo iniciado en el periodo (Entregado después/En Ejecución)</option>
+                    <option value="Entregado">Solo entregado en el periodo (Iniciado en periodo anterior)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- LAYOUT MAPA + PANEL DETALLADO -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Contenedor del Mapa -->
+            <div class="lg:col-span-8 rounded-xl overflow-hidden border border-slate-200 shadow-inner">
+                <div id="map"></div>
             </div>
 
-            <div class="source-subcard" style="border-left-color: var(--primary-light);">
-                <h4>📈 Origen de las Macrométricas Financieras (Foco: Gráficos)</h4>
-                <ul>
-                    <li>
-                        <strong>Techo Presupuestal Histórico (2006 - 2026):</strong> Extraído directamente de los Decretos de Liquidación Anuales del <strong>Presupuesto General de la Nación (PGN)</strong> expedidos de forma consecutiva por el <strong>Ministerio de Hacienda y Crédito Público</strong> y consolidados bajo las leyes de presupuesto decretadas al cierre de cada periodo de gobierno.
-                    </li>
-                    <li style="margin-top:10px; border-top: 1px solid #cbd5e1; padding-top:10px;">
-                        <strong>Matrícula Agregada por Periodo:</strong> Consolidado histórico de cobertura formal de instituciones educativas públicas derivado de las series de matrícula registradas en el <strong>SIMAT (Sistema de Matrícula Estudiantil)</strong> cruzado con los boletines de la Encuesta de Educación Formal (EDUC) del <strong>DANE</strong>.
-                    </li>
-                    <li style="margin-top:10px; border-top: 1px solid #cbd5e1; padding-top:10px;">
-                        <strong>Planta de Docentes y Nómina SGP:</strong> Datos históricos del rubro de funcionamiento escolar del <strong>Sistema General de Participaciones (SGP)</strong> administrado por el <strong>Departamento Nacional de Planeación (DNP)</strong> y reportes de pasivo prestacional del magisterio del <strong>FOMAG</strong>.
-                    </li>
-                </ul>
+            <!-- Panel Detallado Lateral Informativo -->
+            <div class="lg:col-span-4 flex flex-col justify-between bg-slate-50 p-5 rounded-xl border border-slate-200 max-h-[520px] overflow-y-auto custom-scrollbar">
+                <div>
+                    <h3 id="panelDept" class="text-lg font-bold text-blue-900 mb-1">Cargando datos...</h3>
+                    <p id="panelLoc" class="text-xs text-slate-500 mb-4">Descargando repositorio del FFIE de GitHub...</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-xs font-semibold text-slate-500">Tipo de Intervención</span>
+                            <span id="panelType" class="badge bg-new text-white text-[10px] font-bold px-2 py-0.5 rounded">-</span>
+                        </div>
+                        <div class="flex flex-col pb-2 border-b border-slate-200">
+                            <span class="text-xs font-semibold text-slate-500 mb-0.5">Inversión Asignada</span>
+                            <span id="panelValue" class="text-sm font-bold text-blue-900">-</span>
+                        </div>
+                        <div class="flex flex-col pb-2 border-b border-slate-200">
+                            <span class="text-xs font-semibold text-slate-500 mb-0.5">Capacidad Estimada (Sedes)</span>
+                            <span id="panelCapacity" class="text-sm text-slate-700">-</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-xs font-semibold text-slate-500">Gobierno de Inicio (Contrato)</span>
+                            <span id="panelGovInicio" class="gov-tag px-2 py-0.5 rounded bg-slate-200 text-[10px] font-bold text-slate-700">-</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-xs font-semibold text-slate-500">Gobierno de Entrega (Cinta)</span>
+                            <span id="panelGovFin" class="gov-tag px-2 py-0.5 rounded bg-slate-200 text-[10px] font-bold text-slate-700">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-200">
+                    <span class="text-xs font-bold text-blue-900 uppercase tracking-wider block mb-1">Auditoría Crítica de la Obra</span>
+                    <p id="panelDetails" class="text-xs text-slate-600 leading-relaxed italic">
+                        Selecciona cualquier marcador en el mapa para cargar la ficha analítica territorial y el historial contractual de esta sede educativa.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- SECCIÓN 3: Gráfico Físico Nacional (Consolidado Histórico Independiente) -->
+    <h2 class="text-lg font-semibold text-blue-900 mb-4 border-l-4 border-blue-500 pl-3">3. Métricas Físicas Nacionales de Infraestructura</h2>
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
+            <div>
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Cómputo Físico de Obras por Administración (Datos del FFIE)</h3>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed max-w-2xl">
+                    Este gráfico analiza <strong>toda</strong> la base de datos nacional independientemente de los filtros territoriales del mapa. Permite evaluar el mérito político decidiendo la regla de atribución de la obra.
+                </p>
+            </div>
+            <div class="flex flex-col gap-1.5 min-w-[250px]">
+                <label for="chartIndependentFilter" class="text-[10px] font-bold text-blue-900 uppercase tracking-wider">Regla de Atribución Política</label>
+                <select id="chartIndependentFilter" onchange="generarGraficoFisicoDinamicoIndependiente()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 outline-none cursor-pointer font-medium">
+                    <option value="Entregado">A quien INAUGURA la obra (Terminación)</option>
+                    <option value="Iniciado">A quien INICIA la obra (Firma de Contrato)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="relative h-80">
+            <canvas id="ffieProjectChart"></canvas>
+        </div>
+    </div>
+
+    <!-- VENTANA MODAL PARA POPUP CON GRÁFICO PASTEL -->
     <div id="chartModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="cerrarModal()">&times;</span>
-            <h3 id="modalTitle" style="color:var(--primary); font-size:15px; margin-bottom:15px; text-align:center;">Distribución del Gasto</h3>
-            <div style="position:relative; height:280px; width:100%;">
+            <h3 id="modalTitle" class="text-slate-800 font-bold text-center text-sm uppercase tracking-wider mb-4">Distribución del Gasto</h3>
+            <div class="relative h-72 w-full">
                 <canvas id="pieChart"></canvas>
             </div>
         </div>
     </div>
 
-    <footer>
-        <strong>Estrategia de Carga Diferida (Lazy):</strong> Petición HTTP asíncrona apuntando a la base de datos distribuida del mapa territorial remota, resolviendo solapamientos coordenados municipales e inyectando indexación política para el contraste analítico.
-    </footer>
+    <!-- SECCIÓN DE TRANSPARENCIA Y AUDITORÍA DE FUENTES DE DATOS -->
+    <div class="fuentes-card">
+        <h3 class="font-bold text-blue-900 border-b border-blue-200 pb-2 mb-3">Transparencia y Auditoría Metodológica de Fuentes de Datos</h3>
+        <p class="text-slate-600 mb-4">
+            Esta plataforma consolida datos abiertos, balances de gestión presupuestal e informes territoriales de control fiscal en Colombia, cruzando variables absolutas de financiamiento con realidades físicas en territorio.
+        </p>
+        
+        <div class="fuentes-grid">
+            <div class="fuente-item">
+                <h4 class="font-bold text-blue-900 mb-1">1. Mapa de Infraestructura Territorial</h4>
+                <p class="text-slate-600 leading-relaxed">Alimentado de forma híbrida deduplicada a partir de:</p>
+                <ul class="list-disc pl-5 mt-1 text-slate-600 space-y-1">
+                    <li><a href="https://www.datos.gov.co/Educaci-n/MEN_INDICADORES_INFRAESTRUCTURA/3ncw-3qwq/about_data" target="_blank" class="text-blue-500 hover:underline">MEN Indicadores de Infraestructura</a> (Ficha nacional con congelamiento estático de reportes a diciembre de 2021).</li>
+                    <li>Bitácora de <a href="https://ffie.com.co/mejoramientosrurales/" target="_blank" class="text-blue-500 hover:underline">Mejoramientos Rurales FFIE</a> y <a href="https://ffie.com.co/proyectos/metas/" target="_blank" class="text-blue-500 hover:underline">Metas Nacionales</a> (Extracción en vivo con cierres actualizados a 2026).</li>
+                </ul>
+            </div>
+            
+            <div class="fuente-item">
+                <h4 class="font-bold text-blue-900 mb-1">2. Gráficos de Gasto Macro y Matrícula</h4>
+                <p class="text-slate-600 leading-relaxed">Las series históricas agregadas de los gráficos 1, 2 y 3 provienen de:</p>
+                <ul class="list-disc pl-5 mt-1 text-slate-600 space-y-1">
+                    <li><strong>Presupuesto:</strong> Decretos de Liquidación del Presupuesto General de la Nación (PGN), Ministerio de Hacienda.</li>
+                    <li><strong>Matrícula:</strong> Registros consolidados de cobertura SIMAT e investigaciones estadísticas del DANE (Encuesta EDUC).</li>
+                </ul>
+            </div>
+
+            <div class="fuente-item">
+                <h4 class="font-bold text-blue-900 mb-1">3. Nómina de Personal y SGP</h4>
+                <p class="text-slate-600 leading-relaxed">El estancamiento administrativo y sostenimiento del magisterio oficial se indexa cruzando:</p>
+                <ul class="list-disc pl-5 mt-1 text-slate-600 space-y-1">
+                    <li>Distribuciones anuales del Sistema General de Participaciones (SGP) expedidas por el Departamento Nacional de Planeación (DNP).</li>
+                    <li>Balances financieros de aportes del Fondo Nacional de Prestaciones Sociales del Magisterio (FOMAG).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <script>
         const administraciones = ['Uribe (2006-10)', 'Santos (2010-18)', 'Duque (2018-22)', 'Petro (2022-26)'];
         const DATA_URL = "https://raw.githubusercontent.com/robiwimarbu/auditoria-educacion/refs/heads/main/proyectos.json";
 
-        const map = L.map('map').setView([4.5709, -74.2973], 5.5);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(map);
+        let proyectosGlobales = []; // Base de datos en memoria para el filtrado reactivo
+        let ffieChartInstance = null; // Instancia global del gráfico físico dinámico
 
-        // Grupo de clusters para evitar colisión de puntos del mismo municipio
+        // --- 1. CONFIGURACIÓN DEL MAPA BASE (LEAFLET.JS) ---
+        const map = L.map('map').setView([4.5709, -74.2973], 5.5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; CARTO'
+        }).addTo(map);
+
         const markersClusterGroup = L.markerClusterGroup({
-            spiderfyOnMaxZoom: true, 
+            spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true
         });
 
+        function normalizarNombrePresidente(str) {
+            if (!str) return "N/D";
+            const val = str.toUpperCase();
+            if (val.includes("SANTOS")) return "Santos";
+            if (val.includes("DUQUE")) return "Duque";
+            if (val.includes("PETRO")) return "Petro";
+            return "N/D";
+        }
+
         function actualizarPanel(p) {
             document.getElementById('panelDept').innerText = p.name;
             document.getElementById('panelLoc').innerText = p.loc;
+            
             const typeEl = document.getElementById('panelType');
             typeEl.innerText = p.type;
-            typeEl.className = p.type === "NUEVA" || p.type === "NUEVA / AMPLIACIÓN" ? "badge bg-new" : "badge bg-remodel";
+            if (p.type.includes("NUEVA") || p.type.includes("AMPLIACIÓN") || p.type.includes("AMPLIA")) {
+                typeEl.className = "badge bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded";
+            } else {
+                typeEl.className = "badge bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded";
+            }
+
             document.getElementById('panelValue').innerText = p.value;
             document.getElementById('panelCapacity').innerText = p.capacity;
             document.getElementById('panelGovInicio').innerText = p.govInicio;
@@ -301,35 +295,224 @@
             document.getElementById('panelDetails').innerText = p.details;
         }
 
+        // --- 2. LÓGICA DE FILTRADO DINÁMICO RECONSTRUIDA (REACTIVA AL 100%) ---
+        function aplicarFiltros() {
+            const pSel = document.getElementById('filterPresident').value;
+            const tSel = document.getElementById('filterType').value;
+            const cycleSelect = document.getElementById('filterCycle');
+            
+            // Habilitación o deshabilitación adaptiva del filtro de ciclo político
+            if (pSel === "Todos") {
+                cycleSelect.disabled = true;
+                cycleSelect.value = "Todos";
+            } else {
+                cycleSelect.disabled = false;
+            }
+
+            const cSel = cycleSelect.value;
+
+            // Limpiamos los marcadores cargados en el mapa
+            markersClusterGroup.clearLayers();
+
+            // Filtrado del dataset para el render del mapa
+            const proyectosFiltrados = proyectosGlobales.filter(p => {
+                const inicioPres = normalizarNombrePresidente(p.govInicio);
+                const finPres = normalizarNombrePresidente(p.govFin);
+
+                // 1. Filtro Combinado de Presidente y Ciclo Político
+                if (pSel !== "Todos") {
+                    if (cSel === "Todos") {
+                        if (inicioPres !== pSel && finPres !== pSel) return false;
+                    } else if (cSel === "Hecho") {
+                        if (inicioPres !== pSel || finPres !== pSel) return false;
+                    } else if (cSel === "Iniciado") {
+                        if (inicioPres !== pSel || finPres === pSel) return false;
+                    } else if (cSel === "Entregado") {
+                        if (inicioPres === pSel || finPres !== pSel) return false;
+                    }
+                }
+
+                // 2. Filtro del Tipo de Obra
+                if (tSel !== "Todos") {
+                    const typeUpper = p.type.toUpperCase();
+                    const isNueva = typeUpper.includes("NUEVA") || typeUpper.includes("AMPLIACIÓN") || typeUpper.includes("AMPLIA");
+                    
+                    if (tSel === "NUEVA" && !isNueva) return false;
+                    if (tSel === "REMODELACION" && isNueva) return false;
+                }
+
+                return true;
+            });
+
+            // Dispersión artificial mínima para evitar colapso visual de los pines (Jittering)
+            proyectosFiltrados.forEach(p => {
+                const latDispersa = p.lat + (Math.random() - 0.5) * 0.005;
+                const lngDispersa = p.lng + (Math.random() - 0.5) * 0.005;
+
+                const marker = L.marker([latDispersa, lngDispersa]);
+                marker.on('click', () => actualizarPanel(p));
+                markersClusterGroup.addLayer(marker);
+            });
+
+            // Sincronización del panel detallado con un consolidado general
+            if (proyectosFiltrados.length > 0) {
+                document.getElementById('panelDept').innerText = `Consolidado: ${proyectosFiltrados.length} Obras Filtradas`;
+                document.getElementById('panelLoc').innerText = "Mapeo territorial interactivo";
+                
+                let nuevas = 0; let mejoras = 0;
+                proyectosFiltrados.forEach(p => {
+                    const typeUpper = p.type.toUpperCase();
+                    if (typeUpper.includes("NUEVA") || typeUpper.includes("AMPLIA")) nuevas++;
+                    else mejoras++;
+                });
+
+                const typeEl = document.getElementById('panelType');
+                typeEl.innerText = "VISTA AGREGADA";
+                typeEl.className = "badge bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded";
+                
+                document.getElementById('panelValue').innerText = `Obras Nuevas / Ampliación: ${nuevas}`;
+                document.getElementById('panelCapacity').innerText = `Mejoramientos Rurales: ${mejoras}`;
+                document.getElementById('panelGovInicio').innerText = "Múltiples";
+                document.getElementById('panelGovFin').innerText = "Múltiples";
+                document.getElementById('panelDetails').innerText = "Viendo el resumen nacional consolidado. Selecciona cualquier marcador en el mapa para cargar la ficha analítica individual y el historial contractual de una sede educativa específica.";
+            } else {
+                document.getElementById('panelDept').innerText = "Sin registros";
+                document.getElementById('panelLoc').innerText = "Modifica los criterios de búsqueda.";
+                document.getElementById('panelType').innerText = "-";
+                document.getElementById('panelType').className = "badge bg-slate-400 text-white text-[10px] px-2 py-0.5 rounded";
+                document.getElementById('panelValue').innerText = "-";
+                document.getElementById('panelCapacity').innerText = "-";
+                document.getElementById('panelGovInicio').innerText = "-";
+                document.getElementById('panelGovFin').innerText = "-";
+                document.getElementById('panelDetails').innerText = "No se encontraron obras coincidentes con este cruce metodológico exacto en la base de datos de control territorial.";
+            }
+        }
+
+        // --- 4. NUEVA GENERACIÓN DINÁMICA INDEPENDIENTE DE LA GRÁFICA COMPARATIVA ---
+        function generarGraficoFisicoDinamicoIndependiente() {
+            const cSel = document.getElementById('chartIndependentFilter').value;
+
+            // Inicializamos contadores para las tres administraciones válidas
+            const counts = {
+                'Santos': { nuevas: 0, remodelaciones: 0 },
+                'Duque': { nuevas: 0, remodelaciones: 0 },
+                'Petro': { nuevas: 0, remodelaciones: 0 }
+            };
+
+            // SIEMPRE evaluamos la base de datos global, ignorando los filtros del mapa
+            proyectosGlobales.forEach(p => {
+                const inicioPres = normalizarNombrePresidente(p.govInicio);
+                const finPres = normalizarNombrePresidente(p.govFin);
+
+                // Asignar el proyecto a UN SOLO presidente según la regla de atribución del dropdown
+                let targetPres = finPres; // Por defecto asignamos al gobierno que entrega la obra
+                
+                if (cSel === "Iniciado") {
+                    targetPres = inicioPres; // Si buscamos los que iniciaron, se le asigna al que firmó
+                }
+
+                // Sumamos si el presidente cae en las categorías del gráfico
+                if (counts[targetPres]) {
+                    const typeUpper = p.type.toUpperCase();
+                    const isNueva = typeUpper.includes("NUEVA") || typeUpper.includes("AMPLIACIÓN") || typeUpper.includes("AMPLIA");
+
+                    if (isNueva) {
+                        counts[targetPres].nuevas++;
+                    } else {
+                        counts[targetPres].remodelaciones++;
+                    }
+                }
+            });
+
+            // Destrucción y reconstrucción reactiva de la instancia del canvas
+            const ctxFfie = document.getElementById('ffieProjectChart').getContext('2d');
+            if (ffieChartInstance) {
+                ffieChartInstance.destroy();
+            }
+
+            ffieChartInstance = new Chart(ctxFfie, {
+                type: 'bar',
+                data: {
+                    labels: ['Santos (2010-18)', 'Duque (2018-22)', 'Petro (2022-26)'],
+                    datasets: [
+                        {
+                            label: 'Nuevas / Ampliaciones',
+                            data: [counts['Santos'].nuevas, counts['Duque'].nuevas, counts['Petro'].nuevas],
+                            backgroundColor: '#10b981',
+                            borderColor: '#047857',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Remodelaciones / Mejoramientos',
+                            data: [counts['Santos'].remodelaciones, counts['Duque'].remodelaciones, counts['Petro'].remodelaciones],
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#1d4ed8',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Obras Coincidentes con Filtros' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    }
+                }
+            });
+        }
+
         async function consumirRepositorioRemoto() {
             try {
                 const response = await fetch(DATA_URL);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const proyectos = await response.json();
+                proyectosGlobales = await response.json();
                 
-                if (proyectos.length > 0) {
-                    actualizarPanel(proyectos[0]);
-                }
-
-                proyectos.forEach(p => {
-                    // Jittering sutil para evitar solape milimétrico en centroides municipales
-                    const latDispersa = p.lat + (Math.random() - 0.5) * 0.15;
-                    const lngDispersa = p.lng + (Math.random() - 0.5) * 0.15;
-
-                    const marker = L.marker([latDispersa, lngDispersa]);
-                    marker.on('click', () => actualizarPanel(p));
-                    markersClusterGroup.addLayer(marker);
+                // --- LIMPIEZA DE DATOS (Data Cleansing) ---
+                // Corrección heurística de anomalías temporales (fecha de inicio > fecha fin)
+                proyectosGlobales.forEach(p => {
+                    const matchInicio = p.govInicio.match(/\d{4}/);
+                    const matchFin = p.govFin.match(/\d{4}/);
+                    if (matchInicio && matchFin) {
+                        const yearInicio = parseInt(matchInicio[0]);
+                        const yearFin = parseInt(matchFin[0]);
+                        
+                        if (yearInicio > yearFin) {
+                            // Regla de reparación: Asumimos que la obra inició en promedio 1.5 años antes de la entrega
+                            const trueStartYear = yearFin - 1; 
+                            
+                            let presInicioCorregido = "Uribe";
+                            if (trueStartYear >= 2022) presInicioCorregido = "Petro";
+                            else if (trueStartYear >= 2018) presInicioCorregido = "Duque";
+                            else if (trueStartYear >= 2010) presInicioCorregido = "Santos";
+                            
+                            p.govInicio = `${presInicioCorregido} (${trueStartYear})`;
+                            
+                            // Añadimos trazabilidad de la corrección al detalle para ser transparentes
+                            p.details += " [Nota Auditoría: Fecha de inicio corregida por heurística debido a inconsistencia en la fuente].";
+                        }
+                    }
                 });
-
+                
+                // Disparamos la renderización del mapa y del gráfico dinámico independientemente
+                aplicarFiltros();
+                generarGraficoFisicoDinamicoIndependiente();
                 map.addLayer(markersClusterGroup);
 
             } catch (error) {
                 console.error("❌ Fallo en la carga remota:", error);
-                document.getElementById('panelDept').innerText = "Error de conexión";
+                document.getElementById('panelDept').innerText = "Error de repositorio";
+                document.getElementById('panelLoc').innerText = "No se pudo acceder al CDN del proyectos.json.";
             }
         }
 
-        // --- CONFIGURACIÓN DE GRÁFICOS (CHART.JS) ---
+        // --- 5. CONFIGURACIÓN DE GRÁFICOS HISTÓRICOS GENERALES (CHART.JS) ---
+        // Gráfico 1: Presupuesto vs Matrícula por Gobierno
         new Chart(document.getElementById('mixChart').getContext('2d'), {
             type: 'bar',
             data: {
@@ -342,6 +525,7 @@
             options: { responsive: true, maintainAspectRatio: false, scales: { yAlumnos: { type: 'linear', position: 'left', min: 8, max: 12 }, yPresupuesto: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } } } }
         });
 
+        // Gráfico 2: Personal SGP vs Administrativos
         new Chart(document.getElementById('staffCompareChart').getContext('2d'), {
             type: 'bar',
             data: {
@@ -354,6 +538,7 @@
             options: { responsive: true, maintainAspectRatio: false }
         });
 
+        // Gráfico 3: Uso del Presupuesto (Absoluto)
         const pieDataGobernantes = {
             'Uribe (2006-10)': { labels: ['Nómina Docente', 'Pensiones Magisterio', 'Inversión e Infraestructura'], data: [65, 22, 13] },
             'Santos (2010-18)': { labels: ['Nómina Docente', 'Pensiones Magisterio', 'Inversión e Infraestructura'], data: [62, 20, 18] },
@@ -362,16 +547,14 @@
         };
 
         let myPieChart = null;
-        
-        // Gráfico 3: Valores Absolutos acumulados por gobierno
         const govChart = new Chart(document.getElementById('govInvestmentChart').getContext('2d'), {
             type: 'bar',
             data: {
                 labels: administraciones,
                 datasets: [
-                    { label: 'Nómina Docente ($)', data: [8.9, 18.3, 29.3, 48.7], backgroundColor: '#1e3a8a' },
-                    { label: 'Pensiones Magisterio ($)', data: [3.0, 5.9, 9.6, 16.7], backgroundColor: '#f59e0b' },
-                    { label: 'Inversión/Infraestructura ($)', data: [1.8, 5.4, 6.9, 7.4], backgroundColor: '#10b981' }
+                    { label: 'Nómina Docente ($)', data: [10.53, 23.56, 31.55, 50.31], backgroundColor: '#1e3a8a' },
+                    { label: 'Pensiones Magisterio ($)', data: [3.56, 7.60, 10.35, 17.27], backgroundColor: '#f59e0b' },
+                    { label: 'Inversión/Infraestructura ($)', data: [2.10, 6.84, 7.40, 7.51], backgroundColor: '#10b981' }
                 ]
             },
             options: {
@@ -387,15 +570,15 @@
             }
         });
 
-        // NUEVO GRÁFICO 4: Gráfico Apilado al 100% para comparación proporcional directa
-        new Chart(document.getElementById('percentageDistributionChart').getContext('2d'), {
+        // Gráfico 4: Distribución Porcentual del Gasto por Gobierno (100% Stacked)
+        new Chart(document.getElementById('govPercentageChart').getContext('2d'), {
             type: 'bar',
             data: {
                 labels: administraciones,
                 datasets: [
                     { label: 'Nómina Docente (%)', data: [65, 62, 64, 67], backgroundColor: '#1e3a8a' },
                     { label: 'Pensiones Magisterio (%)', data: [22, 20, 21, 23], backgroundColor: '#f59e0b' },
-                    { label: 'Inversión e Infraestructura (%)', data: [13, 18, 15, 10], backgroundColor: '#10b981' }
+                    { label: 'Inversión/Infraestructura (%)', data: [13, 18, 15, 10], backgroundColor: '#10b981' }
                 ]
             },
             options: {
@@ -403,10 +586,11 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: { stacked: true },
-                    y: {
-                        stacked: true,
-                        max: 100,
-                        title: { display: true, text: 'Porcentaje Distribución (%)' }
+                    y: { 
+                        stacked: true, 
+                        max: 100, 
+                        title: { display: true, text: 'Distribución Relativa (%)' },
+                        ticks: { callback: function(value) { return value + "%" } }
                     }
                 }
             }
